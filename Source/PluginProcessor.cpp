@@ -106,6 +106,15 @@ void SimpleEQAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
 
 	leftChain.prepare(spec); // Prepara el canal izquierdo
 	rightChain.prepare(spec); // Prepara el canal derecho
+
+	auto chainSettings = getChainSettings(apvst); // Obtiene los ajustes de la cadena de filtros
+
+	auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(
+		sampleRate, chainSettings.peakFreq, chainSettings.peakQuality, juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
+
+	*leftChain.get<ChainPositions::Peak>().coefficients=*peakCoefficients; // Establece los coeficientes del filtro peak en el canal izquierdo
+	*rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients; // Establece los coeficientes del filtro peak en el canal derecho
+
 }
 
 void SimpleEQAudioProcessor::releaseResources()
@@ -154,7 +163,15 @@ void SimpleEQAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce
 	// this code if your algorithm always overwrites all the output channels.
 	for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
 		buffer.clear(i, 0, buffer.getNumSamples());
-	
+
+	auto chainSettings = getChainSettings(apvst); // Obtiene los ajustes de la cadena de filtros
+
+	auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(
+		getSampleRate(), chainSettings.peakFreq, chainSettings.peakQuality, juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
+
+	*leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients; // Establece los coeficientes del filtro peak en el canal izquierdo
+	*rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients; // Establece los coeficientes del filtro peak en el canal derecho
+
 	juce::dsp::AudioBlock<float> block(buffer);
 
 	auto leftBlock = block.getSingleChannelBlock(0); // Bloque de audio del canal izquierdo
@@ -198,15 +215,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleEQAudioProcessor::crea
 {
 	juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
-	layout.add(std::make_unique<juce::AudioParameterFloat>("LowCut Freq", "LowCut Freq", juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.8f, true), 20.f)); //Parámetro LowCut
+	layout.add(std::make_unique<juce::AudioParameterFloat>("LowCut Freq", "LowCut Freq", juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f), 20.f)); //Parámetro LowCut
 
-	layout.add(std::make_unique<juce::AudioParameterFloat>("HighCut Freq", "HighCut Freq", juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.8f, true), 20000.f)); //Parámetro HighCut
+	layout.add(std::make_unique<juce::AudioParameterFloat>("HighCut Freq", "HighCut Freq", juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f), 20000.f)); //Parámetro HighCut
 
-	layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Freq", "Peak Freq", juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f, true), 750.f)); //Parámetro PeakFreq
+	layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Freq", "Peak Freq", juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f), 750.f)); //Parámetro PeakFreq
 
-	layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Gain", "Peak Gain", juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f, true), 0.0f)); //Parámetro HighCut
+	layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Gain", "Peak Gain", juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f), 0.0f)); //Parámetro HighCut
 
-	layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Quality", "Peak Quality", juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f, true), 1.f)); //Parámetro HighCut
+	layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Quality", "Peak Quality", juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f), 1.f)); //Parámetro HighCut
 
 	juce::StringArray stringArray;
 	for (int i = 0; i < 4;++i)
