@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "MinimalKnobLook.h"
 
 struct CustomRotarySlider : juce::Slider
 {
@@ -32,12 +33,15 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    //juce::Image backgroundImage;
+
 
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     SimpleEQAudioProcessor& audioProcessor;
 
+    MinimalKnobLook customLookAndFeel;
 
     CustomRotarySlider peakFreqSlider,
         peakGainSlider,

@@ -272,7 +272,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleEQAudioProcessor::crea
 	juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
 	// LowCut Range con centro visual en 1000 Hz
-	auto lowCutFreqRange = juce::NormalisableRange<float>(20.f, 20000.f, 1.f);
+	auto lowCutFreqRange = juce::NormalisableRange<float>(20.f, 20000.f, 0.00001f);
 	lowCutFreqRange.setSkewForCentre(1000.f);
 	layout.add(std::make_unique<juce::AudioParameterFloat>(
 		"LowCut Freq",
@@ -282,7 +282,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleEQAudioProcessor::crea
 	));
 
 	// HighCut Range con centro visual en 1000 Hz
-	auto highCutFreqRange = juce::NormalisableRange<float>(20.f, 20000.f, 1.f);
+	auto highCutFreqRange = juce::NormalisableRange<float>(20.f, 20000.f, 0.00001f);
 	highCutFreqRange.setSkewForCentre(1000.f);
 	layout.add(std::make_unique<juce::AudioParameterFloat>(
 		"HighCut Freq",
@@ -292,7 +292,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleEQAudioProcessor::crea
 	));
 
 	// PeakFreq Range con centro visual en 1000 Hz
-	auto peakFreqRange = juce::NormalisableRange<float>(20.f, 20000.f, 1.f);
+	auto peakFreqRange = juce::NormalisableRange<float>(20.f, 20000.f, 0.00001f);
 	peakFreqRange.setSkewForCentre(1000.f);
 	layout.add(std::make_unique<juce::AudioParameterFloat>(
 		"Peak Freq",
@@ -304,12 +304,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleEQAudioProcessor::crea
 	layout.add(std::make_unique<juce::AudioParameterFloat>(
 		"Peak Gain",
 		"Peak Gain",
-		juce::NormalisableRange<float>(-20.f, 20.f, 0.5f, 1.f),
+		juce::NormalisableRange<float>(-20.f, 20.f, 0.1f, 1.f),
 		0.0f
 	));
 
 	//PeakQuality Range con centro visual en 1
-	auto peakQualityRange = juce::NormalisableRange<float>(0.02f, 20.f, 0.01f);
+	auto peakQualityRange = juce::NormalisableRange<float>(0.02f, 20.f, 0.0000001f);
 	peakQualityRange.setSkewForCentre(1.00f);
 
 	layout.add(std::make_unique<juce::AudioParameterFloat>(

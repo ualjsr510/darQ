@@ -26,49 +26,91 @@ SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor(SimpleEQAudioProcesso
 	for (auto* comp : getComps())
 	{
 		addAndMakeVisible(comp);
+
+		if (auto* s = dynamic_cast<juce::Slider*>(comp))
+		{
+			s->setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+			s->setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+			s->setRotaryParameters(
+				juce::MathConstants<float>::pi * 0.75f,  
+				juce::MathConstants<float>::pi * 2.25f,
+				true);
+		}
 	}
 
-	setSize(600, 400);
-	
+	// Aplica el LookAndFeel personalizado
+	peakFreqSlider.setLookAndFeel(&customLookAndFeel);
+	peakGainSlider.setLookAndFeel(&customLookAndFeel);
+	peakQualitySlider.setLookAndFeel(&customLookAndFeel);
+	lowCutFreqSlider.setLookAndFeel(&customLookAndFeel);
+	highCutFreqSlider.setLookAndFeel(&customLookAndFeel);
+	lowCutSlopeSlider.setLookAndFeel(&customLookAndFeel);
+	highCutSlopeSlider.setLookAndFeel(&customLookAndFeel);
+
+	peakFreqSlider.setName("Peak Freq");
+	peakGainSlider.setName("Gain");
+	peakQualitySlider.setName("Q");
+	lowCutFreqSlider.setName("Low Cut Freq");
+	lowCutSlopeSlider.setName("Low Slope");
+	highCutFreqSlider.setName("High Cut Freq");
+	highCutSlopeSlider.setName("High Slope");
+
+	//backgroundImage = juce::ImageCache::getFromMemory(BinaryData::bg_png, BinaryData::bg_pngSize);
+
+	setResizable(true, true);
+	setResizeLimits(300, 200, 1200, 800);
+	setSize(900, 600); // tamaño inicial
+	centreWithSize(getWidth(), getHeight());
+
 }
 
 SimpleEQAudioProcessorEditor::~SimpleEQAudioProcessorEditor()
 {
+	// Limpia el LookAndFeel para evitar problemas al destruir
+	peakFreqSlider.setLookAndFeel(nullptr);
+	peakGainSlider.setLookAndFeel(nullptr);
+	peakQualitySlider.setLookAndFeel(nullptr);
+	lowCutFreqSlider.setLookAndFeel(nullptr);
+	highCutFreqSlider.setLookAndFeel(nullptr);
+	lowCutSlopeSlider.setLookAndFeel(nullptr);
+	highCutSlopeSlider.setLookAndFeel(nullptr);
 }
 
 //==============================================================================
 void SimpleEQAudioProcessorEditor::paint(juce::Graphics& g)
 {
-	// (Our component is opaque, so we must completely fill the background with a solid colour)
-	g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-
-	g.setColour(juce::Colours::white);
-	g.setFont(juce::FontOptions(15.0f));
-	//g.drawFittedText("Mi ecualizador!", getLocalBounds(), juce::Justification::centred, 1);
+	//g.drawImage(backgroundImage, getLocalBounds().toFloat());
+	g.fillAll(juce::Colours::black);
 }
 
 void SimpleEQAudioProcessorEditor::resized()
 {
-	// This is generally where you'll want to lay out the positions of any
-	// subcomponents in your editor..
+	auto bounds = getLocalBounds().reduced(20); // margen general
 
-	auto bounds = getLocalBounds();
-	auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.33);
+	// Dividir en tres columnas iguales: izquierda, centro, derecha
+	auto columnWidth = bounds.getWidth() / 3;
 
-	auto lowCutArea = bounds.removeFromLeft(bounds.getWidth() * 0.33);
-	auto highCutArea = bounds.removeFromRight(bounds.getWidth() * 0.5);
+	auto lowCutArea = bounds.removeFromLeft(columnWidth).reduced(10);
+	auto highCutArea = bounds.removeFromRight(columnWidth).reduced(10);
+	auto peakArea = bounds.reduced(10); // lo que queda es la zona central
 
-	lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(lowCutArea.getHeight() * 0.5));
-	lowCutSlopeSlider.setBounds(lowCutArea);
+	// Distribución vertical: dividir cada zona en 2 (Low/HighCut) o 3 (Peak)
+	auto lowCutHalf = lowCutArea.getHeight() / 2;
+	lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(lowCutHalf).reduced(0, 5));
+	lowCutSlopeSlider.setBounds(lowCutArea.reduced(0, 5));
 
-	highCutFreqSlider.setBounds(highCutArea.removeFromTop(highCutArea.getHeight() * 0.5));
-	highCutSlopeSlider.setBounds(highCutArea);
+	auto highCutHalf = highCutArea.getHeight() / 2;
+	highCutFreqSlider.setBounds(highCutArea.removeFromTop(highCutHalf).reduced(0, 5));
+	highCutSlopeSlider.setBounds(highCutArea.reduced(0, 5));
 
-
-	peakFreqSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.33));
-	peakGainSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.5));
-	peakQualitySlider.setBounds(bounds);
+	auto peakThird = peakArea.getHeight() / 3;
+	peakFreqSlider.setBounds(peakArea.removeFromTop(peakThird).reduced(0, 5));
+	peakGainSlider.setBounds(peakArea.removeFromTop(peakThird).reduced(0, 5));
+	peakQualitySlider.setBounds(peakArea.reduced(0, 5));
 }
+
+
+
 
 std::vector<juce::Component*> SimpleEQAudioProcessorEditor::getComps()
 {
