@@ -34,6 +34,16 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
 class SimpleEQAudioProcessor : public juce::AudioProcessor
 {
 public:
+	static constexpr int fftOrder = 11;
+	static constexpr int fftSize = 1 << fftOrder;
+	static constexpr int scopeSize = 1024;
+
+	bool isFFTReady() const { return nextFFTBlockReady; }
+	void setFFTReady(bool ready) { nextFFTBlockReady = ready; }
+
+	void pushNextSampleIntoFifo(float sample) noexcept;
+	void drawNextFrameOfSpectrum();
+	const float* getScopeData() const { return scopeData; }
 	//==============================================================================
 	SimpleEQAudioProcessor();
 	~SimpleEQAudioProcessor() override;
@@ -75,6 +85,18 @@ public:
 	juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
 
 private:
+	juce::dsp::FFT forwardFFT{ fftOrder };
+	juce::dsp::WindowingFunction<float> window{ fftSize, juce::dsp::WindowingFunction<float>::blackmanHarris };
+
+	float fifo[fftSize] = { 0 };
+	float fftData[2 * fftSize] = { 0 };
+	int fifoIndex = 0;
+	bool nextFFTBlockReady = false;
+
+	float scopeData[scopeSize] = { 0 };
+
+	//==============================================================================
+
 	using Filter = juce::dsp::IIR::Filter<float>;
 
 	using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;

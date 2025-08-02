@@ -166,7 +166,54 @@ void SimpleEQAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce
 
 	leftChain.process(leftContext);
 	rightChain.process(rightContext);
+
+	if (buffer.getNumChannels() > 0)
+	{
+		auto* channelData = buffer.getReadPointer(0);
+		for (int i = 0; i < buffer.getNumSamples(); ++i)
+			pushNextSampleIntoFifo(channelData[i]);
+	}
 }
+
+void SimpleEQAudioProcessor::pushNextSampleIntoFifo(float sample) noexcept
+{
+	if (fifoIndex == fftSize)
+	{
+		if (!nextFFTBlockReady)
+		{
+			juce::zeromem(fftData, sizeof(fftData));
+			std::memcpy(fftData, fifo, sizeof(fifo));
+			nextFFTBlockReady = true;
+		}
+
+		fifoIndex = 0;
+	}
+
+	fifo[fifoIndex++] = sample;
+}
+
+void SimpleEQAudioProcessor::drawNextFrameOfSpectrum()
+{
+	window.multiplyWithWindowingTable(fftData, fftSize);
+	forwardFFT.performFrequencyOnlyForwardTransform(fftData);
+
+	auto mindB = -100.0f;
+	auto maxdB = 0.0f;
+
+	for (int i = 0; i < scopeSize; ++i)
+	{
+		auto skewedProportionX = 1.0f - std::exp(std::log(1.0f - (float)i / (float)scopeSize) * 0.2f);
+		auto fftDataIndex = juce::jlimit(0, fftSize / 2, (int)(skewedProportionX * (float)fftSize * 0.5f));
+		auto level = juce::jmap(
+			juce::jlimit(mindB, maxdB,
+				juce::Decibels::gainToDecibels(fftData[fftDataIndex])
+				- juce::Decibels::gainToDecibels((float)fftSize)),
+			mindB, maxdB, 0.0f, 1.0f);
+
+		scopeData[i] = level;
+	}
+}
+
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
 {

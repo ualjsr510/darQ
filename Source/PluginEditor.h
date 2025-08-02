@@ -11,6 +11,8 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "MinimalKnobLook.h"
+#include "SpectrumAnalyzer.h"
+
 
 struct CustomRotarySlider : juce::Slider
 {
@@ -40,6 +42,9 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     SimpleEQAudioProcessor& audioProcessor;
+
+    SpectrumAnalyzer spectrumAnalyzer;
+
 
     MinimalKnobLook customLookAndFeel;
 

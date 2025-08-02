@@ -13,6 +13,7 @@
 SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor(SimpleEQAudioProcessor& p)
 	: AudioProcessorEditor(&p), audioProcessor(p),
 	peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
+	spectrumAnalyzer(audioProcessor),
 	peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
 	peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakQualitySlider),
 	lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
@@ -20,8 +21,9 @@ SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor(SimpleEQAudioProcesso
 	lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
 	highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider)
 {
-	// Make sure that before the constructor has finished, you've set the
-	// editor's size to whatever you need it to be.
+
+	addAndMakeVisible(spectrumAnalyzer);
+
 
 	for (auto* comp : getComps())
 	{
@@ -107,6 +109,9 @@ void SimpleEQAudioProcessorEditor::resized()
 	peakFreqSlider.setBounds(peakArea.removeFromTop(peakThird).reduced(0, 5));
 	peakGainSlider.setBounds(peakArea.removeFromTop(peakThird).reduced(0, 5));
 	peakQualitySlider.setBounds(peakArea.reduced(0, 5));
+
+	spectrumAnalyzer.setBounds(getLocalBounds());
+
 }
 
 
