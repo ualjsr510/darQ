@@ -129,7 +129,7 @@ public:
         g.setColour(juce::Colours::lightgrey);
         g.setFont(juce::Font("AR PL UKai CN",radius * 0.13f, juce::Font::plain));
 
-        auto labelWidth = 60;
+        auto labelWidth = 100;
         auto labelHeight = 20;
 
         g.drawText(minText, (int)minX - labelWidth / 2, (int)minY - labelHeight / 2, labelWidth, labelHeight, juce::Justification::centred);
